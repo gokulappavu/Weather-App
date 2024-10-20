@@ -85,3 +85,30 @@ function displayHourlyForecast(hourlyData) {
         hourlyForecastDiv.innerHTML += hourlyItemHtml;
     });
 }
+
+async function saveToHistory(city) {
+    const apiKey = 'your_api_key_here'; // Replace with your actual API key
+    const currentWeatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`;
+
+    try {
+        const response = await fetch(currentWeatherUrl);
+        if (!response.ok) {
+            throw new Error('City not found');
+        }
+
+        const data = await response.json();
+        const cityName = data.name;
+        const temperature = Math.round(data.main.temp - 273.15); 
+        
+        const historyList = JSON.parse(localStorage.getItem('history')) || [];
+        const historyItem = { cityName, temperature };
+
+        // Remove any existing entry for this city
+        const updatedHistory = historyList.filter(item => item.cityName !== cityName);
+        updatedHistory.push(historyItem);
+
+        localStorage.setItem('history', JSON.stringify(updatedHistory));
+    } catch (error) {
+        console.error('Error saving history:', error);
+    }
+}
