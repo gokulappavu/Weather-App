@@ -1,9 +1,10 @@
 async function getWeather() {
-    const apiKey = 'your_api_key_here'; // Replace with your actual API key
+    const apiKey = 'f7dbac60cb96e5055c4e3c248ee82820'; // Replace with your actual API key
     const city = document.getElementById('city').value.trim(); 
 
+    // Error handling for empty city input
     if (!city) {
-        alert('Please enter a city');
+        alert('Please enter a valid city name.'); // User-friendly error message
         return; 
     }
 
@@ -11,25 +12,34 @@ async function getWeather() {
         const currentWeatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`;
         const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}`;
 
+        // Fetch current weather and forecast data simultaneously
         const [currentWeatherResponse, forecastResponse] = await Promise.all([
             fetch(currentWeatherUrl),
             fetch(forecastUrl)
         ]);
 
+        // Check if the API responses are OK
         if (!currentWeatherResponse.ok) {
-            throw new Error('City not found');
+            throw new Error('City not found'); // Throw error for 404
         }
         if (!forecastResponse.ok) {
-            throw new Error('Forecast data not available');
+            throw new Error('Forecast data not available'); // Throw error for forecast issues
         }
 
         const currentWeatherData = await currentWeatherResponse.json();
         const forecastData = await forecastResponse.json();
 
-        // Call display functions (to be added in the next steps)
+        // Display the weather and forecast data
+        displayWeather(currentWeatherData);
+        displayHourlyForecast(forecastData.list);
+
+        // Save the city to history and update history display
+        await saveToHistory(city);
+        displayHistory();
+
     } catch (error) {
         console.error('Error:', error);
-        alert('Error fetching data. Please try again.');
+        alert(`Error fetching data: ${error.message}. Please try again.`); // Display error message to user
     }
 }
 
@@ -87,7 +97,7 @@ function displayHourlyForecast(hourlyData) {
 }
 
 async function saveToHistory(city) {
-    const apiKey = 'your_api_key_here'; // Replace with your actual API key
+    const apiKey = 'f7dbac60cb96e5055c4e3c248ee82820'; // Replace with your actual API key
     const currentWeatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`;
 
     try {
@@ -111,6 +121,22 @@ async function saveToHistory(city) {
     } catch (error) {
         console.error('Error saving history:', error);
     }
+}
+
+function displayHistory() {
+    const historyList = JSON.parse(localStorage.getItem('history')) || [];
+    const historyUl = document.getElementById('history-list');
+    historyUl.innerHTML = '';
+
+    historyList.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.cityName}: ${item.temperature}°C`;
+        li.addEventListener('click', () => {
+            document.getElementById('city').value = item.cityName;
+            getWeather();
+        });
+        historyUl.appendChild(li);
+    });
 }
 
 function clearHistory() {
