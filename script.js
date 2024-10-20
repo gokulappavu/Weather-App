@@ -112,3 +112,14 @@ async function saveToHistory(city) {
         console.error('Error saving history:', error);
     }
 }
+
+function clearHistory() {
+    localStorage.removeItem('history');
+    displayHistory();
+}
+
+// Clear history on page load
+clearHistory();
+
+// Initialize the history display
+displayHistory();
